@@ -4,51 +4,65 @@ import ThemeToggle from '../components/ThemeToggle.astro';
 
 <!doctype html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<ThemeToggle />
-		<slot />
-	</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Minimal Notes</title>
+    <meta name="description" content="A minimalistic notes app with a clean sidebar layout. Create, edit, and manage your notes." />
+  </head>
+  <body>
+    <ThemeToggle />
+    <slot />
+  </body>
 </html>
 
 <style>
-	:root {
-		/* Light theme variables */
-		--bg-color: #ffffff;
-		--text-color: #111827;
-		--text-secondary: #4b5563;
-		--border-color: rgba(0, 0, 0, 0.1);
-		--card-bg: rgba(255, 255, 255, 1);
-		--card-hover-bg: rgba(255, 255, 255, 0.55);
-		--shadow-color: rgba(0, 0, 0, 0.1);
-		--shadow-hover-color: rgba(0, 0, 0, 0.15);
-	}
+  :root {
+    /* Palette */
+    --primary: #1976d2;
+    --secondary: #9c27b0;
+    --accent: #ff9800;
 
-	body.dark-theme {
-		/* Dark theme variables */
-		--bg-color: #111827;
-		--text-color: #f9fafb;
-		--text-secondary: #d1d5db;
-		--border-color: rgba(255, 255, 255, 0.2);
-		--card-bg: rgba(31, 41, 55, 0.9);
-		--card-hover-bg: rgba(31, 41, 55, 0.7);
-		--shadow-color: rgba(0, 0, 0, 0.3);
-		--shadow-hover-color: rgba(0, 0, 0, 0.4);
-	}
+    /* Light theme variables */
+    --bg-color: #ffffff;
+    --text-color: #0f172a;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+    --card-bg: #ffffff;
+    --card-hover-bg: #f8fafc;
+    --shadow-color: rgba(2, 6, 23, 0.08);
+    --shadow-hover-color: rgba(2, 6, 23, 0.12);
+  }
 
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-		background-color: var(--bg-color);
-		color: var(--text-color);
-		transition: background-color 0.3s ease, color 0.3s ease;
-	}
+  body.dark-theme {
+    /* Dark theme variables */
+    --bg-color: #0b1220;
+    --text-color: #e6eefc;
+    --text-secondary: #a3b2cc;
+    --border-color: rgba(230, 238, 252, 0.2);
+    --card-bg: rgba(14, 22, 38, 0.9);
+    --card-hover-bg: rgba(14, 22, 38, 0.75);
+    --shadow-color: rgba(0, 0, 0, 0.35);
+    --shadow-hover-color: rgba(0, 0, 0, 0.45);
+  }
+
+  html,
+  body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Utility button color helpers (optional) */
+  .btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .btn.accent { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.secondary { background: var(--secondary); border-color: var(--secondary); color: #fff; }
 </style>

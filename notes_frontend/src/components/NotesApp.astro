@@ -1,0 +1,443 @@
+---
+/**
+ * NotesApp.astro
+ * Main application shell: Sidebar with notes list + main editor area
+ * Implements client-side CRUD actions using localStorage.
+ */
+---
+<div class="app-shell">
+  <aside class="sidebar">
+    <header class="sidebar-header">
+      <h1>Notes</h1>
+      <button id="create-note" class="btn primary">New</button>
+    </header>
+
+    <div class="search-wrap">
+      <input id="search" type="text" placeholder="Search notes..." aria-label="Search notes" />
+    </div>
+
+    <ul id="notes-list" class="notes-list" aria-label="Notes list"></ul>
+  </aside>
+
+  <main class="editor">
+    <div class="editor-header">
+      <input id="note-title" class="title-input" placeholder="Note title" />
+      <div class="actions">
+        <button id="save-note" class="btn accent" title="Save (Ctrl/Cmd+S)">Save</button>
+        <button id="delete-note" class="btn danger" title="Delete note">Delete</button>
+      </div>
+    </div>
+
+    <textarea id="note-content" class="content-input" placeholder="Write your note here..."></textarea>
+
+    <footer class="status">
+      <span id="status-text">No note selected</span>
+    </footer>
+  </main>
+</div>
+
+<style>
+  :root {
+    --color-primary: #1976d2;
+    --color-secondary: #9c27b0;
+    --color-accent: #ff9800;
+    --bg: #ffffff;
+    --bg-soft: #f7f9fc;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --danger: #e11d48;
+    --radius: 12px;
+  }
+
+  .app-shell {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    height: 100dvh;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    min-width: 280px;
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-header h1 {
+    font-size: 20px;
+    margin: 0;
+    letter-spacing: 0.3px;
+  }
+
+  .search-wrap {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #search {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    outline: none;
+    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+  }
+
+  #search:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15);
+    background: #fff;
+  }
+
+  .notes-list {
+    list-style: none;
+    margin: 0;
+    padding: 8px;
+    overflow-y: auto;
+    height: 100%;
+  }
+
+  .note-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 8px;
+    cursor: pointer;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+  }
+
+  .note-item:hover {
+    border-color: rgba(25, 118, 210, 0.35);
+    box-shadow: 0 2px 8px rgba(2, 6, 23, 0.05);
+  }
+
+  .note-item.active {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15);
+    background: #f5faff;
+  }
+
+  .note-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+
+  .note-preview {
+    color: var(--muted);
+    font-size: 12px;
+    margin: 0;
+  }
+
+  .note-meta {
+    color: var(--muted);
+    font-size: 11px;
+    white-space: nowrap;
+    margin-left: 8px;
+  }
+
+  /* Main editor */
+  .editor {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100%;
+  }
+
+  .editor-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: #fff;
+  }
+
+  .title-input {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+  }
+  .title-input:focus {
+    border-color: var(--color-secondary);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(156, 39, 176, 0.15);
+  }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn {
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, color 0.2s, background-color 0.2s;
+  }
+
+  .btn:hover {
+    border-color: rgba(2, 6, 23, 0.2);
+    box-shadow: 0 2px 8px rgba(2, 6, 23, 0.05);
+  }
+
+  .btn.primary {
+    border-color: var(--color-primary);
+    color: #fff;
+    background: var(--color-primary);
+  }
+
+  .btn.accent {
+    border-color: var(--color-accent);
+    color: #fff;
+    background: var(--color-accent);
+  }
+
+  .btn.danger {
+    border-color: var(--danger);
+    color: #fff;
+    background: var(--danger);
+  }
+
+  .content-input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    padding: 16px 20px 24px;
+    resize: none;
+    outline: none;
+    font: 14px/1.6 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    background: #fff;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    background: #fff;
+    font-size: 12px;
+  }
+
+  @media (max-width: 960px) {
+    .app-shell {
+      grid-template-columns: 1fr;
+    }
+    .sidebar {
+      order: 1;
+      height: 40dvh;
+    }
+    .editor {
+      order: 2;
+      height: 60dvh;
+    }
+  }
+</style>
+
+<script type="module">
+  import { loadNotes, createNote, updateNote, deleteNote, getNote, subscribe } from '../lib/notesStore.js';
+
+  const els = {
+    list: null,
+    search: null,
+    create: null,
+    title: null,
+    content: null,
+    save: null,
+    del: null,
+    status: null,
+  };
+
+  let activeId = null;
+  let currentFilter = '';
+
+  function $(id) { return document.getElementById(id); }
+
+  function formatDate(ts) {
+    try {
+      const d = new Date(ts);
+      return d.toLocaleString();
+    } catch {
+      return '';
+    }
+  }
+
+  function renderList() {
+    const notes = loadNotes();
+    const filtered = currentFilter
+      ? notes.filter(n =>
+          (n.title || '').toLowerCase().includes(currentFilter) ||
+          (n.content || '').toLowerCase().includes(currentFilter)
+        )
+      : notes;
+
+    els.list.innerHTML = '';
+    for (const n of filtered) {
+      const li = document.createElement('li');
+      li.className = 'note-item' + (n.id === activeId ? ' active' : '');
+      li.dataset.id = n.id;
+
+      const info = document.createElement('div');
+      const title = document.createElement('p');
+      title.className = 'note-title';
+      title.textContent = n.title || 'Untitled';
+
+      const preview = document.createElement('p');
+      preview.className = 'note-preview';
+      const contentText = (n.content || '').replace(/\s+/g, ' ').trim();
+      preview.textContent = contentText.slice(0, 80) + (contentText.length > 80 ? '…' : '');
+
+      info.appendChild(title);
+      info.appendChild(preview);
+
+      const meta = document.createElement('span');
+      meta.className = 'note-meta';
+      meta.textContent = formatDate(n.updatedAt);
+
+      li.appendChild(info);
+      li.appendChild(meta);
+
+      li.addEventListener('click', () => selectNote(n.id));
+      els.list.appendChild(li);
+    }
+  }
+
+  function selectNote(id) {
+    activeId = id;
+    const note = getNote(id);
+    if (note) {
+      els.title.value = note.title || '';
+      els.content.value = note.content || '';
+      els.status.textContent = `Editing • Last updated ${formatDate(note.updatedAt)}`;
+    } else {
+      els.title.value = '';
+      els.content.value = '';
+      els.status.textContent = 'No note selected';
+    }
+    renderList();
+  }
+
+  function handleCreate() {
+    const n = createNote({ title: 'Untitled', content: '' });
+    selectNote(n.id);
+  }
+
+  function handleSave() {
+    if (!activeId) {
+      // If nothing selected but content exists, create a new note
+      const title = els.title.value.trim();
+      const content = els.content.value;
+      const anyContent = (title + content).trim().length > 0;
+      if (!anyContent) return;
+      const n = createNote({ title: title || 'Untitled', content });
+      selectNote(n.id);
+      return;
+    }
+    updateNote(activeId, {
+      title: els.title.value.trim() || 'Untitled',
+      content: els.content.value,
+    });
+    const updated = getNote(activeId);
+    if (updated) {
+      els.status.textContent = `Saved • ${formatDate(updated.updatedAt)}`;
+    }
+    renderList();
+  }
+
+  function handleDelete() {
+    if (!activeId) return;
+    const ok = confirm('Delete this note? This cannot be undone.');
+    if (!ok) return;
+    if (deleteNote(activeId)) {
+      activeId = null;
+      els.title.value = '';
+      els.content.value = '';
+      els.status.textContent = 'Note deleted';
+      renderList();
+    }
+  }
+
+  function handleFilter(e) {
+    currentFilter = (e.target.value || '').toLowerCase();
+    renderList();
+  }
+
+  function handleHotkeys(e) {
+    const isSave = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's';
+    if (isSave) {
+      e.preventDefault();
+      handleSave();
+    }
+  }
+
+  function init() {
+    els.list = document.getElementById('notes-list');
+    els.search = $('search');
+    els.create = $('create-note');
+    els.title = $('note-title');
+    els.content = $('note-content');
+    els.save = $('save-note');
+    els.del = $('delete-note');
+    els.status = $('status-text');
+
+    // Setup handlers
+    els.create.addEventListener('click', handleCreate);
+    els.save.addEventListener('click', handleSave);
+    els.del.addEventListener('click', handleDelete);
+    els.search.addEventListener('input', handleFilter);
+    window.addEventListener('keydown', handleHotkeys);
+
+    // Auto-save on blur
+    els.title.addEventListener('blur', () => activeId && handleSave());
+    els.content.addEventListener('blur', () => activeId && handleSave());
+
+    // Reactivity
+    subscribe(() => {
+      renderList();
+    });
+
+    // Initial render and selection
+    const notes = loadNotes();
+    renderList();
+    if (notes.length) {
+      selectNote(notes[0].id);
+    } else {
+      els.status.textContent = 'No notes yet. Create your first note.';
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+</script>
